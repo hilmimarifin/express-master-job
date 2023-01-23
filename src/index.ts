@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 import cors from 'cors'
 import dotenv from "dotenv";
 import sequelizeConnection from "./config/dbConnect";
+import router from "./routes/Routes";
 
 
 dotenv.config();
@@ -25,6 +26,8 @@ app.get("/", (req: Request, res: Response) => {
         console.error('Unable to connect to the database:', error);
     }
 })()
+
+app.use(router);
 
 
 app.listen(process.env.APP_PORT, () => {
