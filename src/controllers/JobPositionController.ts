@@ -1,12 +1,13 @@
 import { Request, Response } from "express";
+import JobPosition from "../db/models/JobPosition";
 import JobTitle from "../db/models/JobTitle";
 
 const Create = async (req: Request, res: Response): Promise<Response> => {
     try {
-        const { code, name } = req.body;
+        const { code, name, titleId } = req.body;
 
-        const create = await JobTitle.create({
-            code, name
+        const create = await JobPosition.create({
+            code, name, titleId
         });
 
         return res.status(201).send({
@@ -33,12 +34,18 @@ const Create = async (req: Request, res: Response): Promise<Response> => {
 
 const GetList = async (req: Request, res: Response): Promise<Response> => {
     try {
-        const titles = await JobTitle.findAll();
+        const positions = await JobPosition.findAll({
+            include: {
+                model: JobTitle,
+                attributes: ["name"],
+                foreignKey: "titleId"
+            }
+        });
 
         return res.status(200).send({
             status: 200,
             message: 'OK',
-            data: titles
+            data: positions
         });
     } catch (error: any) {
         if (error != null && error instanceof Error) {
@@ -59,11 +66,11 @@ const GetList = async (req: Request, res: Response): Promise<Response> => {
 
 const Update = async (req: Request, res: Response): Promise<Response> => {
     try {
-        const { code, name, id } = req.body;
+        const { code, name, id, titleId } = req.body;
 
-        const title = await JobTitle.findByPk(id);
+        const position = await JobPosition.findByPk(id);
 
-        if (!title) {
+        if (!position) {
             return res.status(404).send({
                 status: 404,
                 message: "Data Not Found",
@@ -71,15 +78,16 @@ const Update = async (req: Request, res: Response): Promise<Response> => {
             });
         }
 
-        title.name = name;
-        title.code = code;
+        position.name = name;
+        position.code = code;
+        position.titleId = titleId;
 
-        await title.save();
+        await position.save();
 
         return res.status(200).send({
             status: 200,
             message: "OK",
-            data: title
+            data: position
         });
     } catch (error: any) {
         if (error != null && error instanceof Error) {
@@ -102,9 +110,9 @@ const Delete = async (req: Request, res: Response): Promise<Response> => {
     try {
         const { id } = req.body;
 
-        const title = await JobTitle.findByPk(id);
+        const position = await JobPosition.findByPk(id);
 
-        if (!title) {
+        if (!position) {
             return res.status(404).send({
                 status: 404,
                 message: "Data Not Found",
@@ -112,7 +120,7 @@ const Delete = async (req: Request, res: Response): Promise<Response> => {
             });
         }
 
-        await title.destroy();
+        await position.destroy();
 
         return res.status(200).send({
             status: 200,
